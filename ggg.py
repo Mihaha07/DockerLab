@@ -6,7 +6,7 @@ from aiogram.client.default import DefaultBotProperties
 import requests
 
 API_TOKEN = '5151344733:AAGxw8dY91WaZQJk6puo6fgorrARiU3xh0o'
-OPENROUTER_API_KEY = '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'
+OPENROUTER_API_KEY = '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'
 bot = Bot(token=API_TOKEN, default=DefaultBotProperties(parse_mode=ParseMode.HTML))
 dp = Dispatcher()
 

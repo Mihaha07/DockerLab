@@ -4,13 +4,18 @@ from aiogram.types import Message
 from aiogram.enums import ParseMode
 from aiogram.client.default import DefaultBotProperties
 import requests
+from dotenv import load_dotenv
+import os
 
-API_TOKEN = '5151344733:AAGxw8dY91WaZQJk6puo6fgorrARiU3xh0o'
-OPENROUTER_API_KEY = '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'
+load_dotenv()
+
+
+API_TOKEN = os.getenv('TELEGRAM_BOT_TOKEN')
+OPENROUTER_API_KEY = os.getenv('OPENROUTER_API_KEY')
 bot = Bot(token=API_TOKEN, default=DefaultBotProperties(parse_mode=ParseMode.HTML))
 dp = Dispatcher()
-
 user_contexts = {}
+
 # обработка команды старт
 @dp.message(Command("start"))
 async def command_start(message: Message):
@@ -26,15 +31,15 @@ async def command_help(message: Message):
 async def handle_message(message: Message):
     user_id = message.from_user.id
     user_message = message.text
-    #ввод в контекст
+    # ввод в контекст
     if user_id not in user_contexts:
         user_contexts[user_id] = []
     user_contexts[user_id].append({"role": "user", "content": user_message})
-    #промежуточный ответ
+    # промежуточный ответ
     await message.answer("Ответ формируется. Придется немного подождать...")
     llm_response = await send_to_llm(user_contexts[user_id])
     user_contexts[user_id].append({"role": "assistant", "content": llm_response})
-    #добавление ссылки на страницу AI
+    # добавление ссылки на страницу AI
     await message.answer(
         llm_response,
         parse_mode=ParseMode.HTML,
@@ -42,8 +47,8 @@ async def handle_message(message: Message):
             inline_keyboard=[
                 [
                     types.InlineKeyboardButton(
-                        text="Powered by Gimini",
-                        url="https://openrouter.ai/google/gemini-2.0-pro-exp-02-05:free/api"
+                        text="Powered by Gemini",
+                        url="https://openrouter.ai/google/gemini-2.0-flash-exp:free/api"
                     )
                 ]
             ]
@@ -59,10 +64,10 @@ async def send_to_llm(messages):
     }
 
     data = {
-        "model": "google/gemini-2.0-pro-exp-02-05:free",
+        "model": "google/gemini-2.0-flash-exp:free",
         "messages": messages
     }
-#Отработка ошибок
+# Отработка ответов и ошибок
     try:
         response = requests.post(url, headers=headers, json=data)
         response.raise_for_status()
@@ -74,6 +79,6 @@ async def send_to_llm(messages):
             return "Произошла ошибка при обработке ответа. Отправьте запрос еще раз."
     except Exception as e:
         return f"Произошла ошибка: {str(e)}"
-#запуск бота
+# запуск бота
 if __name__ == '__main__':
     dp.run_polling(bot, skip_updates=True)
